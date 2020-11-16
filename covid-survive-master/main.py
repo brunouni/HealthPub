@@ -20,10 +20,50 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 branco = (255, 255, 255)
 preto = (0, 0, 0)
 
+#menu
+click = False
+def menu():
+    menum.play(-1)
+    pygame.mixer.Sound.set_volume(menum, 0.1)
+    global gameLoop, fimdejogo
+    while True:
+
+        display.blit(menuimg, (0,0))
+        display.blit(logo, (390, 120))
+
+        mx, my = pygame.mouse.get_pos()
+
+        button_1 = pygame.Rect(220, 450, 200, 50)
+        button_2 = pygame.Rect(660, 450, 200, 50)
+
+        if button_1.collidepoint((mx, my)):
+            if click:
+                fimdejogo = False
+                main()
+        if button_2.collidepoint((mx, my)):
+            if click:
+                pygame.quit()
+
+        display.blit(botao, (220, 450))
+        display.blit(botao, (660, 450))
+        textob('Jogar', preto, 30)
+        textob2('Sair', preto, 30)
+
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        pygame.display.update()
+        pygame.time.Clock()
+
 def texto(msg, cor, tam,):
     font = pygame.font.SysFont(None, tam)
     texto1 = font.render(msg, True, cor)
-    display.blit(texto1, [270, 300])
+    display.blit(texto1, [42, 300])
 def texto2(msg, cor, tam,):
     font = pygame.font.SysFont(None, tam)
     texto3 = font.render(msg, True, cor)
@@ -32,6 +72,18 @@ def textop(msg, cor, tam,):
     font = pygame.font.SysFont(None, tam)
     textop2 = font.render(msg, True, cor)
     display.blit(textop2, [320, 150])
+def textomenu(msg, cor, tam,):
+    font = pygame.font.SysFont(None, tam)
+    textomenuu = font.render(msg, True, cor)
+    display.blit(textomenuu, [400, 187])
+def textob(msg, cor, tam,):
+    font = pygame.font.SysFont(None, tam)
+    textob1 = font.render(msg, True, cor)
+    display.blit(textob1, [290, 465])
+def textob2(msg, cor, tam,):
+    font = pygame.font.SysFont(None, tam)
+    textobt2 = font.render(msg, True, cor)
+    display.blit(textobt2, [740, 465])
 
 
 # objetos
@@ -51,7 +103,11 @@ bg = pygame.sprite.Sprite(objectGroup)
 bg.image = pygame.image.load("img/Mapa.png")
 bg.image = pygame.transform.scale(bg.image, [1080, 720])
 bg.rect = bg.image.get_rect()
-
+menuimg = pygame.image.load("img/menu.png")
+menuimg = pygame.transform.scale(menuimg, [1080, 720])
+logo = pygame.image.load("img/logo.png")
+botao = pygame.image.load("img/botao.png")
+botao = pygame.transform.scale(botao, [200, 50])
 player = Player(objectGroup)
 
 XY = (1080, 720)
@@ -63,11 +119,10 @@ clock = pygame.time.Clock()
 
 #música
 pygame.mixer.music.load("sounds/música.mp3")
-pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.1)
 ready = pygame.mixer.Sound("sounds/ready.ogg")
 pygame.mixer.Sound.set_volume(ready, 0.1)
-ready.play(0)
+menum = pygame.mixer.Sound("sounds/menu.wav")
 
 #sons
 shoot = pygame.mixer.Sound("sounds/somseringa.ogg")
@@ -75,27 +130,32 @@ pygame.mixer.Sound.set_volume(ready, 0.3 )
 gameover = pygame.mixer.Sound("sounds/game_over.ogg")
 pygame.mixer.Sound.set_volume(gameover, 0.1)
 
-if __name__ == "__main__":
+def main():
+    global objectGroup, enemyGroup, enemy2Group, enemy3Group, shotGroup, shot2Group, shot3Group, shot4Group, gameLoop, fimdejogo, pontos, XY, timer, clock, shoot, gameover, ready, newEnemy, bg, player, display
+    ready.play(0)
+    pygame.mixer.music.play(-1)
+    menum.stop()
     while gameLoop:
         clock.tick(60)
         while fimdejogo:
             fim = pygame.transform.scale(pygame.image.load("img/Mapafim.png").convert_alpha(), XY)
             display.blit(fim, (0, 0))
-            texto("Fim de jogo, pressione a tecla ESC para sair", (branco), 36)
+            texto("Fim de jogo, você foi infectado!! Pressione a tecla ESC para sair e ESPAÇO para jogar novamente", (branco), 32)
             textop("Sua pontuação foi de: " +str(pontos), (branco), 52)
             pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    gameLoop = False
-                    fimdejogo = False
+                    pygame.quit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        gameLoop = False
-                        fimdejogo = False
+                        pygame.quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        menu()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                gameLoop = False
+                pygame.quit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
                     newShot = Shot(objectGroup, shotGroup)
@@ -142,7 +202,6 @@ if __name__ == "__main__":
             gameover.play(0)
             pygame.mixer.music.stop()
 
-
         hits = pygame.sprite.groupcollide(shotGroup, enemyGroup, True, True, pygame.sprite.collide_mask)
         hits2 = pygame.sprite.groupcollide(shotGroup, enemy2Group, True, True, pygame.sprite.collide_mask)
         hits3 = pygame.sprite.groupcollide(shotGroup, enemy3Group, True, True, pygame.sprite.collide_mask)
@@ -167,3 +226,6 @@ if __name__ == "__main__":
         objectGroup.draw(display)
         texto2("Pontuação: "+str(pontos), (preto), 36)
         pygame.display.update()
+menu()
+if __name__ == "__main__":
+    main()
